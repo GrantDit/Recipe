@@ -10,14 +10,19 @@ import pro.sky.recipe.service.RecipeFilesService;
 import pro.sky.recipe.service.RecipeService;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class RecipeServiceImpl implements RecipeService {
-    private final RecipeFilesService recipeFilesService;
     private static Map<Long, Recipe> recipes = new HashMap<>();
     private static long recipeNumber = 0;
+    private final RecipeFilesService recipeFilesService;
 
     public RecipeServiceImpl(RecipeFilesService recipeFilesService) {
         this.recipeFilesService = recipeFilesService;
@@ -25,7 +30,11 @@ public class RecipeServiceImpl implements RecipeService {
 
     @PostConstruct
     private void init() {
-        readFromFile();
+        try {
+            readFromFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -92,5 +101,35 @@ public class RecipeServiceImpl implements RecipeService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Path createTextDataFile() throws IOException {
+        Path path = recipeFilesService.createTempFile("recipesDataFile");
+        for (Recipe recipe : recipes.values()) {
+            try (Writer writer = Files.newBufferedWriter(path, StandardOpenOption.APPEND)) {
+                writer.append(recipe.getRecipeName()).append("\n \n").append("Cooking time: ").append(String.valueOf(recipe.getInstructions())).append(" minutes.").append("\n");
+                writer.append("\n");
+                writer.append("Ingredients: \n \n");
+                recipe.getIngredients().forEach(ingredient -> {
+                    try {
+                        writer.append(" - ").append(ingredient.getIngredientName()).append(" - ").append(String.valueOf(ingredient.getTime())).append(" ").append(ingredient.getUnit()).append("\n \n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                writer.append("\n");
+                writer.append("Cooking instructions: \n \n");
+                recipe.getInstructions().forEach(step -> {
+                    try {
+                        writer.append(" > ").append(step).append("\n \n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                writer.append("\n \n");
+            }
+        }
+        return path;
     }
 }

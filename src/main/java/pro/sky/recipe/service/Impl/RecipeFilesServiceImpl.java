@@ -1,5 +1,6 @@
 package pro.sky.recipe.service.Impl;
 
+
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,15 @@ public class RecipeFilesServiceImpl implements RecipeFilesService {
     @Override
     public File getDataFile() {
         return new File(recipesFilePath + "/" + recipesFileName);
+    }
+
+    @Override
+    public Path createTempFile(String suffix) {
+        try {
+            return Files.createTempFile(Path.of(recipesFilePath), "tempFile", suffix);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -2,6 +2,8 @@ package pro.sky.recipe.service;
 
 import pro.sky.recipe.model.Recipe;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map;
 
 public interface RecipeService {
@@ -16,4 +18,5 @@ public interface RecipeService {
     boolean deleteRecipeById(long recipeNumber);
 
     void deleteAllRecipes();
+    Path createTextDataFile() throws IOException;
 }
